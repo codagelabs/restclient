@@ -36,8 +36,16 @@ type HTTPRequest interface {
 	PUT(url string) error
 	PATCH(url string) error
 	DELETE(url string) error
+	//Execute(Method string, url string)
 	Error() error
 }
+
+//type response struct {
+//	resStatus   *int
+//	resCookies  *[]*http.Cookie
+//	resHeaders  *map[string][]string
+//	err         error
+//}
 
 type httpRequest struct {
 	resStatus   *int
