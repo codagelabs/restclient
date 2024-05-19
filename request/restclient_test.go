@@ -6,13 +6,14 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
-	"github.com/dgrijalva/jwt-go"
-	"github.com/stretchr/testify/suite"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/dgrijalva/jwt-go"
+	"github.com/stretchr/testify/suite"
 )
 
 type testServerResp struct {
@@ -55,11 +56,11 @@ func (suite *HTTPRequestTestSuite) TearDownTest() {
 
 }
 
-func (suite HTTPRequestTestSuite) setupTestServer(handleFunc func(res http.ResponseWriter, req *http.Request)) *httptest.Server {
+func (suite *HTTPRequestTestSuite) setupTestServer(handleFunc func(res http.ResponseWriter, req *http.Request)) *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(handleFunc))
 }
 
-func (suite HTTPRequestTestSuite) TestTestPostRequestWithXmlBodyShouldSuccessWithXmlResponse() {
+func (suite *HTTPRequestTestSuite) TestTestPostRequestWithXmlBodyShouldSuccessWithXmlResponse() {
 
 	serverResponse := newSuccessResp()
 	serverStatus := http.StatusOK
@@ -84,7 +85,7 @@ func (suite HTTPRequestTestSuite) TestTestPostRequestWithXmlBodyShouldSuccessWit
 	suite.Equal(serverStatus, expectedStatus)
 }
 
-func (suite HTTPRequestTestSuite) TestTestPostRequestWithXmlBodyShouldReturnAnErrorStatusNotFound() {
+func (suite *HTTPRequestTestSuite) TestTestPostRequestWithXmlBodyShouldReturnAnErrorStatusNotFound() {
 
 	type ServerResp struct {
 		Data  string `xml:"data"`
@@ -117,10 +118,10 @@ func (suite HTTPRequestTestSuite) TestTestPostRequestWithXmlBodyShouldReturnAnEr
 	suite.Equal(http.StatusNotFound, expectedStatus)
 }
 
-func (suite HTTPRequestTestSuite) TestTestPostRequestWithXmlBodyShouldReturnAnErrorWhenErrorInRequestParsing() {
+func (suite *HTTPRequestTestSuite) TestTestPostRequestWithXmlBodyShouldReturnAnErrorWhenErrorInRequestParsing() {
 
 	serverResponse := map[string]interface{}{
-		"test": make(chan int, 0),
+		"test": make(chan int),
 	}
 	var expectedStatus int
 
@@ -134,7 +135,7 @@ func (suite HTTPRequestTestSuite) TestTestPostRequestWithXmlBodyShouldReturnAnEr
 	suite.NotNil(err)
 }
 
-func (suite HTTPRequestTestSuite) Test_PostRequestWithJsonBodyShouldRetunAnErrorResponseNotFound() {
+func (suite *HTTPRequestTestSuite) Test_PostRequestWithJsonBodyShouldRetunAnErrorResponseNotFound() {
 
 	serverResponse := newErrorResp()
 	serverStatus := http.StatusNotFound
@@ -159,7 +160,7 @@ func (suite HTTPRequestTestSuite) Test_PostRequestWithJsonBodyShouldRetunAnError
 	suite.Equal(serverStatus, expectedStatus)
 }
 
-func (suite HTTPRequestTestSuite) Test_PostRequestWithJsonBodyShouldSuccess() {
+func (suite *HTTPRequestTestSuite) Test_PostRequestWithJsonBodyShouldSuccess() {
 
 	type ServerResp struct {
 		Data  string `json:"data"`
@@ -192,7 +193,7 @@ func (suite HTTPRequestTestSuite) Test_PostRequestWithJsonBodyShouldSuccess() {
 	suite.Equal(serverStatus, expectedStatus)
 }
 
-func (suite HTTPRequestTestSuite) Test_PostRequestWithJsonBodyShouldSuccessWithResponseHeader() {
+func (suite *HTTPRequestTestSuite) Test_PostRequestWithJsonBodyShouldSuccessWithResponseHeader() {
 
 	serverResponse := newSuccessResp()
 	serverStatus := http.StatusOK
@@ -218,7 +219,7 @@ func (suite HTTPRequestTestSuite) Test_PostRequestWithJsonBodyShouldSuccessWithR
 	suite.Equal(serverStatus, expectedStatus)
 }
 
-func (suite HTTPRequestTestSuite) Test_PostRequestWithJsonBodyAndOauthShouldSuccess() {
+func (suite *HTTPRequestTestSuite) Test_PostRequestWithJsonBodyAndOauthShouldSuccess() {
 
 	serverStatus := http.StatusOK
 	var expectedStatus int
@@ -236,7 +237,7 @@ func (suite HTTPRequestTestSuite) Test_PostRequestWithJsonBodyAndOauthShouldSucc
 	suite.Equal(serverStatus, expectedStatus)
 }
 
-func (suite HTTPRequestTestSuite) Test_PostRequestWithJsonBodyAndOauthShouldReturnErrorStatusUnauthorized() {
+func (suite *HTTPRequestTestSuite) Test_PostRequestWithJsonBodyAndOauthShouldReturnErrorStatusUnauthorized() {
 
 	serverStatus := http.StatusUnauthorized
 	var expectedStatus int
@@ -254,7 +255,7 @@ func (suite HTTPRequestTestSuite) Test_PostRequestWithJsonBodyAndOauthShouldRetu
 	suite.Equal(serverStatus, expectedStatus)
 }
 
-func (suite HTTPRequestTestSuite) Test_PatchRequestWithJsonBodyShouldSuccess() {
+func (suite *HTTPRequestTestSuite) Test_PatchRequestWithJsonBodyShouldSuccess() {
 
 	type ServerResp struct {
 		Data  string `json:"data"`
@@ -287,7 +288,7 @@ func (suite HTTPRequestTestSuite) Test_PatchRequestWithJsonBodyShouldSuccess() {
 	suite.Equal(serverStatus, expectedStatus)
 }
 
-func (suite HTTPRequestTestSuite) TestPostRequestFormURLEncodedShouldReturnJsonDataWithSuccessResponse() {
+func (suite *HTTPRequestTestSuite) TestPostRequestFormURLEncodedShouldReturnJsonDataWithSuccessResponse() {
 
 	serverResponse := newSuccessResp()
 	serverStatus := http.StatusOK
@@ -322,7 +323,7 @@ func (suite HTTPRequestTestSuite) TestPostRequestFormURLEncodedShouldReturnJsonD
 	suite.Equal(serverStatus, expectedStatus)
 }
 
-func (suite HTTPRequestTestSuite) TestPostRequestFormURLEncodedShouldReturnJsonDataWithShouldReturnAnErrorContentTypeNotSupported() {
+func (suite *HTTPRequestTestSuite) TestPostRequestFormURLEncodedShouldReturnJsonDataWithShouldReturnAnErrorContentTypeNotSupported() {
 
 	formData := map[string]interface{}{
 		"name": map[string]string{
@@ -330,11 +331,11 @@ func (suite HTTPRequestTestSuite) TestPostRequestFormURLEncodedShouldReturnJsonD
 		},
 	}
 	err := suite.restClient.NewRequest().WithFromURLEncoded(formData).Error()
-	suite.Equal(errors.New("Invalid request type: only multipart string is supported "), err)
+	suite.Equal(errors.New("invalid request type: only multipart string is supported "), err)
 
 }
 
-func (suite HTTPRequestTestSuite) TestTestPostRequestWithJsonBodyAndWithContextShouldSuccess() {
+func (suite *HTTPRequestTestSuite) TestTestPostRequestWithJsonBodyAndWithContextShouldSuccess() {
 
 	type ServerResp struct {
 		Data  string `json:"data"`
@@ -367,7 +368,7 @@ func (suite HTTPRequestTestSuite) TestTestPostRequestWithJsonBodyAndWithContextS
 	suite.Equal(serverStatus, expectedStatus)
 }
 
-func (suite HTTPRequestTestSuite) Test_PostRequestWithJsonBodyAndAddCookiesShouldSuccess() {
+func (suite *HTTPRequestTestSuite) Test_PostRequestWithJsonBodyAndAddCookiesShouldSuccess() {
 
 	type ServerResp struct {
 		Data  string `json:"data"`
@@ -404,7 +405,7 @@ func (suite HTTPRequestTestSuite) Test_PostRequestWithJsonBodyAndAddCookiesShoul
 	suite.Equal(serverStatus, expectedStatus)
 }
 
-func (suite HTTPRequestTestSuite) Test_PostRequestShouldRetrievesTestCookiesWhenSuccess() {
+func (suite *HTTPRequestTestSuite) Test_PostRequestShouldRetrievesTestCookiesWhenSuccess() {
 
 	type ServerResp struct {
 		Data  string `json:"data"`
@@ -446,7 +447,7 @@ func (suite HTTPRequestTestSuite) Test_PostRequestShouldRetrievesTestCookiesWhen
 	suite.NotNil(clientCookies[0])
 }
 
-func (suite HTTPRequestTestSuite) Test_DeleteRequestWithUrlQueryParameterShouldSuccess() {
+func (suite *HTTPRequestTestSuite) Test_DeleteRequestWithUrlQueryParameterShouldSuccess() {
 	serverResponse := newSuccessResp()
 	serverStatus := http.StatusOK
 	var clientStatus int
@@ -476,7 +477,7 @@ func (suite HTTPRequestTestSuite) Test_DeleteRequestWithUrlQueryParameterShouldS
 	suite.Equal(serverStatus, clientStatus)
 }
 
-func (suite HTTPRequestTestSuite) Test_GetRequestWithUrlQueryParameterShouldSuccess() {
+func (suite *HTTPRequestTestSuite) Test_GetRequestWithUrlQueryParameterShouldSuccess() {
 
 	serverResponse := newSuccessResp()
 	serverStatus := http.StatusOK
@@ -507,7 +508,7 @@ func (suite HTTPRequestTestSuite) Test_GetRequestWithUrlQueryParameterShouldSucc
 	suite.Equal(serverStatus, clientStatus)
 }
 
-func (suite HTTPRequestTestSuite) TestTestPostRequestShouldRetrievesTestCookiesShouldBeNilIfServersSuccess() {
+func (suite *HTTPRequestTestSuite) TestTestPostRequestShouldRetrievesTestCookiesShouldBeNilIfServersSuccess() {
 
 	serverResponse := newSuccessResp()
 	serverStatus := http.StatusOK
@@ -535,7 +536,7 @@ func (suite HTTPRequestTestSuite) TestTestPostRequestShouldRetrievesTestCookiesS
 	suite.Empty(clientCookies)
 }
 
-func (suite HTTPRequestTestSuite) TestTestPostRequestWithJsonBodyAndAddHeadersShouldSuccess() {
+func (suite *HTTPRequestTestSuite) TestTestPostRequestWithJsonBodyAndAddHeadersShouldSuccess() {
 
 	type ServerResp struct {
 		Data  string `json:"data"`
@@ -568,7 +569,7 @@ func (suite HTTPRequestTestSuite) TestTestPostRequestWithJsonBodyAndAddHeadersSh
 	suite.Equal(serverStatus, expectedStatus)
 }
 
-func (suite HTTPRequestTestSuite) TestTestPostRequestWithJsonBodyShouldReturnAnErrorNotFound() {
+func (suite *HTTPRequestTestSuite) TestTestPostRequestWithJsonBodyShouldReturnAnErrorNotFound() {
 
 	type ServerResp struct {
 		Data  string `json:"data"`
@@ -601,7 +602,7 @@ func (suite HTTPRequestTestSuite) TestTestPostRequestWithJsonBodyShouldReturnAnE
 	suite.Equal(serverStatus, expectedStatus)
 }
 
-func (suite HTTPRequestTestSuite) TestTestPostRequestWithJsonAndBasicAuthBodyShouldSuccess() {
+func (suite *HTTPRequestTestSuite) TestTestPostRequestWithJsonAndBasicAuthBodyShouldSuccess() {
 	testUsername := "test-username"
 	testPassword := "test-pass"
 	type ServerResp struct {
@@ -645,7 +646,7 @@ func (suite HTTPRequestTestSuite) TestTestPostRequestWithJsonAndBasicAuthBodySho
 	suite.Equal(serverStatus, expectedStatus)
 }
 
-func (suite HTTPRequestTestSuite) TestTestPostRequestWithJsonAndBasicAuthBodyShouldReturnAnUnAuthorizedError() {
+func (suite *HTTPRequestTestSuite) TestTestPostRequestWithJsonAndBasicAuthBodyShouldReturnAnUnAuthorizedError() {
 	testUsername := "test-username"
 	testPassword := "test-pass"
 	type ServerResp struct {
@@ -686,7 +687,7 @@ func (suite HTTPRequestTestSuite) TestTestPostRequestWithJsonAndBasicAuthBodySho
 	suite.Equal(serverStatus, expectedStatus)
 }
 
-func (suite HTTPRequestTestSuite) TestTestPostRequestWithJsonAndJWtAuthShouldSuccess() {
+func (suite *HTTPRequestTestSuite) TestTestPostRequestWithJsonAndJWtAuthShouldSuccess() {
 	type ServerResp struct {
 		Data  string `json:"data"`
 		Error string `json:"error"`
@@ -731,7 +732,7 @@ func (suite HTTPRequestTestSuite) TestTestPostRequestWithJsonAndJWtAuthShouldSuc
 	suite.Equal(serverStatus, expectedStatus)
 }
 
-func (suite HTTPRequestTestSuite) TestTestPostRequestWithJsonAndJWtAuthShouldReturnStatusUnAuthorized() {
+func (suite *HTTPRequestTestSuite) TestTestPostRequestWithJsonAndJWtAuthShouldReturnStatusUnAuthorized() {
 	type ServerResp struct {
 		Data  string `json:"data"`
 		Error string `json:"error"`
@@ -776,7 +777,7 @@ func (suite HTTPRequestTestSuite) TestTestPostRequestWithJsonAndJWtAuthShouldRet
 	suite.Equal(http.StatusUnauthorized, expectedStatus)
 }
 
-func (suite HTTPRequestTestSuite) TestTestPutRequestWithJsonAndJWtAuthShouldSuccess() {
+func (suite *HTTPRequestTestSuite) TestTestPutRequestWithJsonAndJWtAuthShouldSuccess() {
 	type ServerResp struct {
 		Data  string `json:"data"`
 		Error string `json:"error"`
@@ -821,7 +822,7 @@ func (suite HTTPRequestTestSuite) TestTestPutRequestWithJsonAndJWtAuthShouldSucc
 	suite.Equal(serverStatus, expectedStatus)
 }
 
-func (suite HTTPRequestTestSuite) TestTestPutRequestWithJsonAndJWtAuthShouldReturnStatusUnAuthorized() {
+func (suite *HTTPRequestTestSuite) TestTestPutRequestWithJsonAndJWtAuthShouldReturnStatusUnAuthorized() {
 	type ServerResp struct {
 		Data  string `json:"data"`
 		Error string `json:"error"`
@@ -866,22 +867,22 @@ func (suite HTTPRequestTestSuite) TestTestPutRequestWithJsonAndJWtAuthShouldRetu
 	suite.Equal(http.StatusUnauthorized, expectedStatus)
 }
 
-func (suite HTTPRequestTestSuite) TestWithXml_ShouldReturnAnErrorWhenInvalidDataForMarshal() {
+func (suite *HTTPRequestTestSuite) TestWithXml_ShouldReturnAnErrorWhenInvalidDataForMarshal() {
 	test := map[string]interface{}{
-		"test": make(chan int, 0),
+		"test": make(chan int),
 	}
 	err := suite.restClient.NewRequest().WithXml(test).Error()
 	suite.NotNil(err)
 }
-func (suite HTTPRequestTestSuite) TestWithJson_ShouldReturnAnErrorWhenInvalidDataForMarshal() {
+func (suite *HTTPRequestTestSuite) TestWithJson_ShouldReturnAnErrorWhenInvalidDataForMarshal() {
 	test := map[string]interface{}{
-		"test": make(chan int, 0),
+		"test": make(chan int),
 	}
 	err := suite.restClient.NewRequest().WithJson(test).Error()
 	suite.NotNil(err)
 }
 
-func (suite HTTPRequestTestSuite) createJwtTestToken(userid uint64) (string, error) {
+func (suite *HTTPRequestTestSuite) createJwtTestToken(userid uint64) (string, error) {
 	var err error
 	atClaims := jwt.MapClaims{}
 	atClaims["authorized"] = true
@@ -896,7 +897,7 @@ func (suite HTTPRequestTestSuite) createJwtTestToken(userid uint64) (string, err
 	return token, nil
 }
 
-func (suite HTTPRequestTestSuite) verifyJwtTestToken(r *http.Request) (*jwt.Token, error) {
+func (suite *HTTPRequestTestSuite) verifyJwtTestToken(r *http.Request) (*jwt.Token, error) {
 	tokenString := suite.extractJwtToken(r)
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		//Make sure that the token method conform to "SigningMethodHMAC"
@@ -911,7 +912,7 @@ func (suite HTTPRequestTestSuite) verifyJwtTestToken(r *http.Request) (*jwt.Toke
 	return token, nil
 }
 
-func (suite HTTPRequestTestSuite) extractJwtToken(r *http.Request) string {
+func (suite *HTTPRequestTestSuite) extractJwtToken(r *http.Request) string {
 	bearToken := r.Header.Get("Authorization")
 	//normally Authorization the_token_xxx
 	strArr := strings.Split(bearToken, " ")
@@ -919,4 +920,145 @@ func (suite HTTPRequestTestSuite) extractJwtToken(r *http.Request) string {
 		return strArr[1]
 	}
 	return ""
+}
+
+func (suite *HTTPRequestTestSuite) TestTestPostRequestWithRetriesWithJsonBodyAndAddHeadersShouldFailedAfter3Retries() {
+
+	type ServerResp struct {
+		Data  string `json:"data"`
+		Error string `json:"error"`
+	}
+
+	serverResponse := ServerResp{
+		Error: "",
+		Data:  "",
+	}
+	serverStatus := http.StatusInternalServerError
+
+	var expectedStatus int
+	clientResp := ServerResp{}
+
+	handlerFunc := func(res http.ResponseWriter, req *http.Request) {
+		res.Header().Set("Content-Type", "application/json")
+		res.WriteHeader(serverStatus)
+		marshal, err := json.Marshal(serverResponse)
+		if err != nil {
+			suite.Error(errors.New("error in marshalling"))
+		}
+		_, _ = res.Write(marshal)
+	}
+	testServer := suite.setupTestServer(handlerFunc)
+	defer testServer.Close()
+
+	err := suite.restClient.NewRequestWithRetries(3, []int{500}).WithJson(serverResponse).AddHeaders("Content_type", "application/json").GetResponseAs(&clientResp).GetResponseStatusCodeAs(&expectedStatus).POST(testServer.URL)
+	suite.Nil(err)
+	suite.Equal(serverResponse, clientResp)
+	suite.Equal(serverStatus, expectedStatus)
+}
+
+func (suite *HTTPRequestTestSuite) TestTestPostRequestWithRetriesWithJsonBodyAndAddHeadersShouldFailedAfter1Retries2ndRetrySuccess() {
+
+	type ServerResp struct {
+		Data  string `json:"data"`
+		Error string `json:"error"`
+	}
+	expectedResponse := ServerResp{
+		Error: "",
+		Data:  "data",
+	}
+
+	serverStatus := http.StatusOK
+
+	var expectedStatus int
+	clientResp := ServerResp{}
+	count := 0
+	handlerFunc := func(res http.ResponseWriter, req *http.Request) {
+		if count == 0 {
+			serverResponse := ServerResp{
+				Error: "error",
+				Data:  "",
+			}
+			res.Header().Set("Content-Type", "application/json")
+			res.WriteHeader(500)
+			marshal, err := json.Marshal(serverResponse)
+			if err != nil {
+				suite.Error(errors.New("error in marshalling"))
+			}
+			_, _ = res.Write(marshal)
+			count = count + 1
+		} else {
+			serverResponse := ServerResp{
+				Error: "",
+				Data:  "data",
+			}
+			res.Header().Set("Content-Type", "application/json")
+			res.WriteHeader(200)
+			marshal, err := json.Marshal(serverResponse)
+			if err != nil {
+				suite.Error(errors.New("error in marshalling"))
+			}
+			_, _ = res.Write(marshal)
+		}
+	}
+	testServer := suite.setupTestServer(handlerFunc)
+	defer testServer.Close()
+
+	err := suite.restClient.NewRequestWithRetries(1, []int{500}).WithJson(expectedResponse).AddHeaders("Content_type", "application/json").GetResponseAs(&clientResp).GetResponseStatusCodeAs(&expectedStatus).POST(testServer.URL)
+	suite.Nil(err)
+	suite.Equal(expectedResponse, clientResp)
+	suite.Equal(serverStatus, expectedStatus)
+}
+
+
+func (suite *HTTPRequestTestSuite) TestTestPostRequestWithRetriesWithJsonBodyAndAddHeadersShouldFailedAfter1and2Retries3rdRetrySuccess() {
+
+	type ServerResp struct {
+		Data  string `json:"data"`
+		Error string `json:"error"`
+	}
+	expectedResponse := ServerResp{
+		Error: "",
+		Data:  "data",
+	}
+
+	serverStatus := http.StatusOK
+
+	var expectedStatus int
+	clientResp := ServerResp{}
+	count1 := 0
+	handlerFunc := func(res http.ResponseWriter, req *http.Request) {
+		if count1 <2 {
+			serverResponse := ServerResp{
+				Error: "error",
+				Data:  "",
+			}
+			res.Header().Set("Content-Type", "application/json")
+			res.WriteHeader(500)
+			marshal, err := json.Marshal(serverResponse)
+			if err != nil {
+				suite.Error(errors.New("error in marshalling"))
+			}
+			_, _ = res.Write(marshal)
+			count1 = count1 + 1
+		} else {
+			serverResponse := ServerResp{
+				Error: "",
+				Data:  "data",
+			}
+			res.Header().Set("Content-Type", "application/json")
+			res.WriteHeader(200)
+			marshal, err := json.Marshal(serverResponse)
+			if err != nil {
+				suite.Error(errors.New("error in marshalling"))
+			}
+			_, _ = res.Write(marshal)
+		}
+	}
+	testServer := suite.setupTestServer(handlerFunc)
+	defer testServer.Close()
+
+	err := suite.restClient.NewRequestWithRetries(3, []int{500}).WithJson(expectedResponse).AddHeaders("Content_type", "application/json").GetResponseAs(&clientResp).GetResponseStatusCodeAs(&expectedStatus).POST(testServer.URL)
+	suite.Nil(err)
+	suite.Equal(expectedResponse, clientResp)
+	suite.Equal(serverStatus, expectedStatus)
 }
