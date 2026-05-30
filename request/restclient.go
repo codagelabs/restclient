@@ -1,3 +1,29 @@
+// Package request provides a lightweight, fluent HTTP client for Go that wraps `net/http`
+// with a clean builder-style API. It supports standard HTTP methods, JSON/XML/Form-encoded
+// payloads, custom headers, cookies, authentication (Basic, JWT, OAuth 2.0), context propagation,
+// and configurable retry strategies with optional fixed or exponential backoff with jitter.
+//
+// Basic Usage Example:
+//
+//	type Response struct {
+//	    ID   int    `json:"id"`
+//	    Name string `json:"name"`
+//	}
+//
+//	var resp Response
+//	var status int
+//
+//	client := request.NewRestClient(&http.Client{})
+//	err := client.NewRequest().
+//	    GetResponseAs(&resp).
+//	    GetResponseStatusCodeAs(&status).
+//	    GET("https://api.example.com/users/1")
+//
+//	if err != nil {
+//	    log.Fatal("error:", err)
+//	}
+//	fmt.Println("status:", status)
+//	fmt.Println("user name:", resp.Name)
 package request
 
 import (
@@ -759,6 +785,9 @@ func (req httpRequest) processResponseModel(resp *http.Response) error {
 	return nil
 }
 
+// RestClient defines the builder interface for creating new fluent HTTP requests.
+// It serves as the entry point for configuring and sending HTTP requests, using an underlying
+// client.HttpClient (usually standard library's *http.Client) to perform the actual network calls.
 type RestClient interface {
 	// NewRequest generates a new HTTP request object implementing the HTTPRequest interface.
 	//
@@ -870,6 +899,14 @@ func (builder restClient) NewRequestWithRetryAndExponentialBackoff(maxNoOfRetrie
 	}
 }
 
+// NewRestClient creates and initializes a new RestClient using the provided HttpClient.
+// The provided httpClient can be a standard *http.Client or any custom implementation of the
+// client.HttpClient interface.
+//
+// Example:
+//
+//	httpClient := &http.Client{Timeout: 10 * time.Second}
+//	client := request.NewRestClient(httpClient)
 func NewRestClient(httpClient client.HttpClient) RestClient {
 	return restClient{httpClient: httpClient}
 }
