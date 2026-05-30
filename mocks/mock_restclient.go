@@ -8,10 +8,15 @@ import (
 	context "context"
 	http "net/http"
 	reflect "reflect"
+	time "time"
 
 	request "github.com/codagelabs/restclient/request"
 	gomock "github.com/golang/mock/gomock"
 )
+
+// ---------------------------------------------------------------------------
+// MockHTTPRequest
+// ---------------------------------------------------------------------------
 
 // MockHTTPRequest is a mock of HTTPRequest interface.
 type MockHTTPRequest struct {
@@ -36,18 +41,122 @@ func (m *MockHTTPRequest) EXPECT() *MockHTTPRequestMockRecorder {
 	return m.recorder
 }
 
-// AddCookies mocks base method.
-func (m *MockHTTPRequest) AddCookies(cookies *http.Cookie) request.HTTPRequest {
+// ── Body builders ────────────────────────────────────────────────────────────
+
+// WithJson mocks base method.
+func (m *MockHTTPRequest) WithJson(requestModel interface{}) request.HTTPRequest {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddCookies", cookies)
+	ret := m.ctrl.Call(m, "WithJson", requestModel)
 	ret0, _ := ret[0].(request.HTTPRequest)
 	return ret0
 }
 
-// AddCookies indicates an expected call of AddCookies.
-func (mr *MockHTTPRequestMockRecorder) AddCookies(cookies interface{}) *gomock.Call {
+// WithJson indicates an expected call of WithJson.
+func (mr *MockHTTPRequestMockRecorder) WithJson(requestModel interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddCookies", reflect.TypeOf((*MockHTTPRequest)(nil).AddCookies), cookies)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithJson", reflect.TypeOf((*MockHTTPRequest)(nil).WithJson), requestModel)
+}
+
+// WithXml mocks base method.
+func (m *MockHTTPRequest) WithXml(requestModel interface{}) request.HTTPRequest {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WithXml", requestModel)
+	ret0, _ := ret[0].(request.HTTPRequest)
+	return ret0
+}
+
+// WithXml indicates an expected call of WithXml.
+func (mr *MockHTTPRequestMockRecorder) WithXml(requestModel interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithXml", reflect.TypeOf((*MockHTTPRequest)(nil).WithXml), requestModel)
+}
+
+// WithFromURLEncoded mocks base method.
+func (m *MockHTTPRequest) WithFromURLEncoded(formData map[string]interface{}) request.HTTPRequest {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WithFromURLEncoded", formData)
+	ret0, _ := ret[0].(request.HTTPRequest)
+	return ret0
+}
+
+// WithFromURLEncoded indicates an expected call of WithFromURLEncoded.
+func (mr *MockHTTPRequestMockRecorder) WithFromURLEncoded(formData interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithFromURLEncoded", reflect.TypeOf((*MockHTTPRequest)(nil).WithFromURLEncoded), formData)
+}
+
+// ── Auth ─────────────────────────────────────────────────────────────────────
+
+// WithBasicAuth mocks base method.
+func (m *MockHTTPRequest) WithBasicAuth(username, password string) request.HTTPRequest {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WithBasicAuth", username, password)
+	ret0, _ := ret[0].(request.HTTPRequest)
+	return ret0
+}
+
+// WithBasicAuth indicates an expected call of WithBasicAuth.
+func (mr *MockHTTPRequestMockRecorder) WithBasicAuth(username, password interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithBasicAuth", reflect.TypeOf((*MockHTTPRequest)(nil).WithBasicAuth), username, password)
+}
+
+// WithJWTAuth mocks base method.
+func (m *MockHTTPRequest) WithJWTAuth(token string) request.HTTPRequest {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WithJWTAuth", token)
+	ret0, _ := ret[0].(request.HTTPRequest)
+	return ret0
+}
+
+// WithJWTAuth indicates an expected call of WithJWTAuth.
+func (mr *MockHTTPRequestMockRecorder) WithJWTAuth(token interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithJWTAuth", reflect.TypeOf((*MockHTTPRequest)(nil).WithJWTAuth), token)
+}
+
+// WithOauth mocks base method.
+func (m *MockHTTPRequest) WithOauth(token string) request.HTTPRequest {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WithOauth", token)
+	ret0, _ := ret[0].(request.HTTPRequest)
+	return ret0
+}
+
+// WithOauth indicates an expected call of WithOauth.
+func (mr *MockHTTPRequestMockRecorder) WithOauth(token interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithOauth", reflect.TypeOf((*MockHTTPRequest)(nil).WithOauth), token)
+}
+
+// ── Request options ──────────────────────────────────────────────────────────
+
+// WithContext mocks base method.
+func (m *MockHTTPRequest) WithContext(context context.Context) request.HTTPRequest {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WithContext", context)
+	ret0, _ := ret[0].(request.HTTPRequest)
+	return ret0
+}
+
+// WithContext indicates an expected call of WithContext.
+func (mr *MockHTTPRequestMockRecorder) WithContext(context interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithContext", reflect.TypeOf((*MockHTTPRequest)(nil).WithContext), context)
+}
+
+// WithQueryParameters mocks base method.
+func (m *MockHTTPRequest) WithQueryParameters(queryParam map[string]string) request.HTTPRequest {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WithQueryParameters", queryParam)
+	ret0, _ := ret[0].(request.HTTPRequest)
+	return ret0
+}
+
+// WithQueryParameters indicates an expected call of WithQueryParameters.
+func (mr *MockHTTPRequestMockRecorder) WithQueryParameters(queryParam interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithQueryParameters", reflect.TypeOf((*MockHTTPRequest)(nil).WithQueryParameters), queryParam)
 }
 
 // AddHeaders mocks base method.
@@ -64,47 +173,79 @@ func (mr *MockHTTPRequestMockRecorder) AddHeaders(key, value interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddHeaders", reflect.TypeOf((*MockHTTPRequest)(nil).AddHeaders), key, value)
 }
 
-// DELETE mocks base method.
-func (m *MockHTTPRequest) DELETE(url string) error {
+// AddCookies mocks base method.
+func (m *MockHTTPRequest) AddCookies(cookies *http.Cookie) request.HTTPRequest {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DELETE", url)
-	ret0, _ := ret[0].(error)
+	ret := m.ctrl.Call(m, "AddCookies", cookies)
+	ret0, _ := ret[0].(request.HTTPRequest)
 	return ret0
 }
 
-// DELETE indicates an expected call of DELETE.
-func (mr *MockHTTPRequestMockRecorder) DELETE(url interface{}) *gomock.Call {
+// AddCookies indicates an expected call of AddCookies.
+func (mr *MockHTTPRequestMockRecorder) AddCookies(cookies interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DELETE", reflect.TypeOf((*MockHTTPRequest)(nil).DELETE), url)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddCookies", reflect.TypeOf((*MockHTTPRequest)(nil).AddCookies), cookies)
 }
 
-// Error mocks base method.
-func (m *MockHTTPRequest) Error() error {
+// WithCustomRequestModifier mocks base method.
+func (m *MockHTTPRequest) WithCustomRequestModifier(fn func(*http.Request) error) request.HTTPRequest {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Error")
-	ret0, _ := ret[0].(error)
+	ret := m.ctrl.Call(m, "WithCustomRequestModifier", fn)
+	ret0, _ := ret[0].(request.HTTPRequest)
 	return ret0
 }
 
-// Error indicates an expected call of Error.
-func (mr *MockHTTPRequestMockRecorder) Error() *gomock.Call {
+// WithCustomRequestModifier indicates an expected call of WithCustomRequestModifier.
+func (mr *MockHTTPRequestMockRecorder) WithCustomRequestModifier(fn interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Error", reflect.TypeOf((*MockHTTPRequest)(nil).Error))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithCustomRequestModifier", reflect.TypeOf((*MockHTTPRequest)(nil).WithCustomRequestModifier), fn)
 }
 
-// GET mocks base method.
-func (m *MockHTTPRequest) GET(url string) error {
+// ── Retry builders ───────────────────────────────────────────────────────────
+
+// WithRetry mocks base method.
+func (m *MockHTTPRequest) WithRetry(maxNoOfRetries uint, statusCodes []int) request.HTTPRequest {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GET", url)
-	ret0, _ := ret[0].(error)
+	ret := m.ctrl.Call(m, "WithRetry", maxNoOfRetries, statusCodes)
+	ret0, _ := ret[0].(request.HTTPRequest)
 	return ret0
 }
 
-// GET indicates an expected call of GET.
-func (mr *MockHTTPRequestMockRecorder) GET(url interface{}) *gomock.Call {
+// WithRetry indicates an expected call of WithRetry.
+func (mr *MockHTTPRequestMockRecorder) WithRetry(maxNoOfRetries, statusCodes interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GET", reflect.TypeOf((*MockHTTPRequest)(nil).GET), url)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithRetry", reflect.TypeOf((*MockHTTPRequest)(nil).WithRetry), maxNoOfRetries, statusCodes)
 }
+
+// WithRetryAndBackoff mocks base method.
+func (m *MockHTTPRequest) WithRetryAndBackoff(maxNoOfRetries uint, statusCodes []int, backoff time.Duration) request.HTTPRequest {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WithRetryAndBackoff", maxNoOfRetries, statusCodes, backoff)
+	ret0, _ := ret[0].(request.HTTPRequest)
+	return ret0
+}
+
+// WithRetryAndBackoff indicates an expected call of WithRetryAndBackoff.
+func (mr *MockHTTPRequestMockRecorder) WithRetryAndBackoff(maxNoOfRetries, statusCodes, backoff interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithRetryAndBackoff", reflect.TypeOf((*MockHTTPRequest)(nil).WithRetryAndBackoff), maxNoOfRetries, statusCodes, backoff)
+}
+
+// WithRetryAndExponentialBackoff mocks base method.
+func (m *MockHTTPRequest) WithRetryAndExponentialBackoff(maxNoOfRetries uint, statusCodes []int, initialBackoff time.Duration) request.HTTPRequest {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WithRetryAndExponentialBackoff", maxNoOfRetries, statusCodes, initialBackoff)
+	ret0, _ := ret[0].(request.HTTPRequest)
+	return ret0
+}
+
+// WithRetryAndExponentialBackoff indicates an expected call of WithRetryAndExponentialBackoff.
+func (mr *MockHTTPRequestMockRecorder) WithRetryAndExponentialBackoff(maxNoOfRetries, statusCodes, initialBackoff interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithRetryAndExponentialBackoff", reflect.TypeOf((*MockHTTPRequest)(nil).WithRetryAndExponentialBackoff), maxNoOfRetries, statusCodes, initialBackoff)
+}
+
+// ── Response collectors ──────────────────────────────────────────────────────
 
 // GetResponseAs mocks base method.
 func (m *MockHTTPRequest) GetResponseAs(responseModel interface{}) request.HTTPRequest {
@@ -118,6 +259,20 @@ func (m *MockHTTPRequest) GetResponseAs(responseModel interface{}) request.HTTPR
 func (mr *MockHTTPRequestMockRecorder) GetResponseAs(responseModel interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetResponseAs", reflect.TypeOf((*MockHTTPRequest)(nil).GetResponseAs), responseModel)
+}
+
+// GetResponseStatusCodeAs mocks base method.
+func (m *MockHTTPRequest) GetResponseStatusCodeAs(httpStatusCode *int) request.HTTPRequest {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetResponseStatusCodeAs", httpStatusCode)
+	ret0, _ := ret[0].(request.HTTPRequest)
+	return ret0
+}
+
+// GetResponseStatusCodeAs indicates an expected call of GetResponseStatusCodeAs.
+func (mr *MockHTTPRequestMockRecorder) GetResponseStatusCodeAs(httpStatusCode interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetResponseStatusCodeAs", reflect.TypeOf((*MockHTTPRequest)(nil).GetResponseStatusCodeAs), httpStatusCode)
 }
 
 // GetResponseCookiesAs mocks base method.
@@ -148,32 +303,20 @@ func (mr *MockHTTPRequestMockRecorder) GetResponseHeadersAs(respHeaders interfac
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetResponseHeadersAs", reflect.TypeOf((*MockHTTPRequest)(nil).GetResponseHeadersAs), respHeaders)
 }
 
-// GetResponseStatusCodeAs mocks base method.
-func (m *MockHTTPRequest) GetResponseStatusCodeAs(httpStatusCode *int) request.HTTPRequest {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetResponseStatusCodeAs", httpStatusCode)
-	ret0, _ := ret[0].(request.HTTPRequest)
-	return ret0
-}
+// ── HTTP verbs ───────────────────────────────────────────────────────────────
 
-// GetResponseStatusCodeAs indicates an expected call of GetResponseStatusCodeAs.
-func (mr *MockHTTPRequestMockRecorder) GetResponseStatusCodeAs(httpStatusCode interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetResponseStatusCodeAs", reflect.TypeOf((*MockHTTPRequest)(nil).GetResponseStatusCodeAs), httpStatusCode)
-}
-
-// PATCH mocks base method.
-func (m *MockHTTPRequest) PATCH(url string) error {
+// GET mocks base method.
+func (m *MockHTTPRequest) GET(url string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PATCH", url)
+	ret := m.ctrl.Call(m, "GET", url)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// PATCH indicates an expected call of PATCH.
-func (mr *MockHTTPRequestMockRecorder) PATCH(url interface{}) *gomock.Call {
+// GET indicates an expected call of GET.
+func (mr *MockHTTPRequestMockRecorder) GET(url interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PATCH", reflect.TypeOf((*MockHTTPRequest)(nil).PATCH), url)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GET", reflect.TypeOf((*MockHTTPRequest)(nil).GET), url)
 }
 
 // POST mocks base method.
@@ -204,117 +347,67 @@ func (mr *MockHTTPRequestMockRecorder) PUT(url interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PUT", reflect.TypeOf((*MockHTTPRequest)(nil).PUT), url)
 }
 
-// WithBasicAuth mocks base method.
-func (m *MockHTTPRequest) WithBasicAuth(username, password string) request.HTTPRequest {
+// PATCH mocks base method.
+func (m *MockHTTPRequest) PATCH(url string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "WithBasicAuth", username, password)
-	ret0, _ := ret[0].(request.HTTPRequest)
+	ret := m.ctrl.Call(m, "PATCH", url)
+	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// WithBasicAuth indicates an expected call of WithBasicAuth.
-func (mr *MockHTTPRequestMockRecorder) WithBasicAuth(username, password interface{}) *gomock.Call {
+// PATCH indicates an expected call of PATCH.
+func (mr *MockHTTPRequestMockRecorder) PATCH(url interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithBasicAuth", reflect.TypeOf((*MockHTTPRequest)(nil).WithBasicAuth), username, password)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PATCH", reflect.TypeOf((*MockHTTPRequest)(nil).PATCH), url)
 }
 
-// WithContext mocks base method.
-func (m *MockHTTPRequest) WithContext(context context.Context) request.HTTPRequest {
+// DELETE mocks base method.
+func (m *MockHTTPRequest) DELETE(url string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "WithContext", context)
-	ret0, _ := ret[0].(request.HTTPRequest)
+	ret := m.ctrl.Call(m, "DELETE", url)
+	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// WithContext indicates an expected call of WithContext.
-func (mr *MockHTTPRequestMockRecorder) WithContext(context interface{}) *gomock.Call {
+// DELETE indicates an expected call of DELETE.
+func (mr *MockHTTPRequestMockRecorder) DELETE(url interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithContext", reflect.TypeOf((*MockHTTPRequest)(nil).WithContext), context)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DELETE", reflect.TypeOf((*MockHTTPRequest)(nil).DELETE), url)
 }
 
-// WithFromURLEncoded mocks base method.
-func (m *MockHTTPRequest) WithFromURLEncoded(formData map[string]interface{}) request.HTTPRequest {
+// Execute mocks base method.
+func (m *MockHTTPRequest) Execute(Method string, url string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "WithFromURLEncoded", formData)
-	ret0, _ := ret[0].(request.HTTPRequest)
+	ret := m.ctrl.Call(m, "Execute", Method, url)
+	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// WithFromURLEncoded indicates an expected call of WithFromURLEncoded.
-func (mr *MockHTTPRequestMockRecorder) WithFromURLEncoded(formData interface{}) *gomock.Call {
+// Execute indicates an expected call of Execute.
+func (mr *MockHTTPRequestMockRecorder) Execute(Method, url interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithFromURLEncoded", reflect.TypeOf((*MockHTTPRequest)(nil).WithFromURLEncoded), formData)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockHTTPRequest)(nil).Execute), Method, url)
 }
 
-// WithJWTAuth mocks base method.
-func (m *MockHTTPRequest) WithJWTAuth(token string) request.HTTPRequest {
+// ── Error accessor ───────────────────────────────────────────────────────────
+
+// Error mocks base method.
+func (m *MockHTTPRequest) Error() error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "WithJWTAuth", token)
-	ret0, _ := ret[0].(request.HTTPRequest)
+	ret := m.ctrl.Call(m, "Error")
+	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// WithJWTAuth indicates an expected call of WithJWTAuth.
-func (mr *MockHTTPRequestMockRecorder) WithJWTAuth(token interface{}) *gomock.Call {
+// Error indicates an expected call of Error.
+func (mr *MockHTTPRequestMockRecorder) Error() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithJWTAuth", reflect.TypeOf((*MockHTTPRequest)(nil).WithJWTAuth), token)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Error", reflect.TypeOf((*MockHTTPRequest)(nil).Error))
 }
 
-// WithJson mocks base method.
-func (m *MockHTTPRequest) WithJson(requestModel interface{}) request.HTTPRequest {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "WithJson", requestModel)
-	ret0, _ := ret[0].(request.HTTPRequest)
-	return ret0
-}
-
-// WithJson indicates an expected call of WithJson.
-func (mr *MockHTTPRequestMockRecorder) WithJson(requestModel interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithJson", reflect.TypeOf((*MockHTTPRequest)(nil).WithJson), requestModel)
-}
-
-// WithOauth mocks base method.
-func (m *MockHTTPRequest) WithOauth(token string) request.HTTPRequest {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "WithOauth", token)
-	ret0, _ := ret[0].(request.HTTPRequest)
-	return ret0
-}
-
-// WithOauth indicates an expected call of WithOauth.
-func (mr *MockHTTPRequestMockRecorder) WithOauth(token interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithOauth", reflect.TypeOf((*MockHTTPRequest)(nil).WithOauth), token)
-}
-
-// WithQueryParameters mocks base method.
-func (m *MockHTTPRequest) WithQueryParameters(queryParam map[string]string) request.HTTPRequest {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "WithQueryParameters", queryParam)
-	ret0, _ := ret[0].(request.HTTPRequest)
-	return ret0
-}
-
-// WithQueryParameters indicates an expected call of WithQueryParameters.
-func (mr *MockHTTPRequestMockRecorder) WithQueryParameters(queryParam interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithQueryParameters", reflect.TypeOf((*MockHTTPRequest)(nil).WithQueryParameters), queryParam)
-}
-
-// WithXml mocks base method.
-func (m *MockHTTPRequest) WithXml(requestModel interface{}) request.HTTPRequest {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "WithXml", requestModel)
-	ret0, _ := ret[0].(request.HTTPRequest)
-	return ret0
-}
-
-// WithXml indicates an expected call of WithXml.
-func (mr *MockHTTPRequestMockRecorder) WithXml(requestModel interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithXml", reflect.TypeOf((*MockHTTPRequest)(nil).WithXml), requestModel)
-}
+// ---------------------------------------------------------------------------
+// MockRestClient
+// ---------------------------------------------------------------------------
 
 // MockRestClient is a mock of RestClient interface.
 type MockRestClient struct {
@@ -351,4 +444,46 @@ func (m *MockRestClient) NewRequest() request.HTTPRequest {
 func (mr *MockRestClientMockRecorder) NewRequest() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewRequest", reflect.TypeOf((*MockRestClient)(nil).NewRequest))
+}
+
+// NewRequestWithRetries mocks base method.
+func (m *MockRestClient) NewRequestWithRetries(maxNoOfRetries uint, statusCodes []int) request.HTTPRequest {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NewRequestWithRetries", maxNoOfRetries, statusCodes)
+	ret0, _ := ret[0].(request.HTTPRequest)
+	return ret0
+}
+
+// NewRequestWithRetries indicates an expected call of NewRequestWithRetries.
+func (mr *MockRestClientMockRecorder) NewRequestWithRetries(maxNoOfRetries, statusCodes interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewRequestWithRetries", reflect.TypeOf((*MockRestClient)(nil).NewRequestWithRetries), maxNoOfRetries, statusCodes)
+}
+
+// NewRequestWithRetryAndBackoff mocks base method.
+func (m *MockRestClient) NewRequestWithRetryAndBackoff(maxNoOfRetries uint, statusCodes []int, backoff time.Duration) request.HTTPRequest {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NewRequestWithRetryAndBackoff", maxNoOfRetries, statusCodes, backoff)
+	ret0, _ := ret[0].(request.HTTPRequest)
+	return ret0
+}
+
+// NewRequestWithRetryAndBackoff indicates an expected call of NewRequestWithRetryAndBackoff.
+func (mr *MockRestClientMockRecorder) NewRequestWithRetryAndBackoff(maxNoOfRetries, statusCodes, backoff interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewRequestWithRetryAndBackoff", reflect.TypeOf((*MockRestClient)(nil).NewRequestWithRetryAndBackoff), maxNoOfRetries, statusCodes, backoff)
+}
+
+// NewRequestWithRetryAndExponentialBackoff mocks base method.
+func (m *MockRestClient) NewRequestWithRetryAndExponentialBackoff(maxNoOfRetries uint, statusCodes []int, initialBackoff time.Duration) request.HTTPRequest {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NewRequestWithRetryAndExponentialBackoff", maxNoOfRetries, statusCodes, initialBackoff)
+	ret0, _ := ret[0].(request.HTTPRequest)
+	return ret0
+}
+
+// NewRequestWithRetryAndExponentialBackoff indicates an expected call of NewRequestWithRetryAndExponentialBackoff.
+func (mr *MockRestClientMockRecorder) NewRequestWithRetryAndExponentialBackoff(maxNoOfRetries, statusCodes, initialBackoff interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewRequestWithRetryAndExponentialBackoff", reflect.TypeOf((*MockRestClient)(nil).NewRequestWithRetryAndExponentialBackoff), maxNoOfRetries, statusCodes, initialBackoff)
 }
