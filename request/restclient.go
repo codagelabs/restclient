@@ -7,11 +7,13 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"errors"
-	"fmt"
 	"io"
+	"math"
+	"math/rand"
 	"mime/multipart"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/codagelabs/restclient/client"
 )
@@ -134,6 +136,63 @@ type HTTPRequest interface {
 	//          AddHeaders("Content-Type", "application/json").
 	//          AddHeaders("X-Custom-Header", "custom-value")
 	AddHeaders(key string, value string) HTTPRequest
+
+	// WithCustomRequestModifier allows providing a custom function to modify the underlying *http.Request
+	// before it is sent. This is useful for advanced use-cases such as adding custom signing logic,
+	// tracing headers, or request-level interceptors.
+	//
+	// Example:
+	//   req := NewRequest().WithCustomRequestModifier(func(r *http.Request) error {
+	//       r.Header.Set("X-Trace-ID", generateTraceID())
+	//       return nil
+	//   })
+	WithCustomRequestModifier(fn func(*http.Request) error) HTTPRequest
+
+	// WithRetry configures the request to automatically retry on the specified HTTP status codes.
+	// The request will be retried up to maxNoOfRetries times whenever the server responds
+	// with one of the provided statusCodes. No delay is applied between retries.
+	//
+	// Parameters:
+	//   - maxNoOfRetries: Maximum number of retry attempts.
+	//   - statusCodes: HTTP status codes that should trigger a retry.
+	//
+	// Example:
+	//   err := NewRequest().
+	//       WithJson(payload).
+	//       WithRetry(3, []int{500, 502, 503}).
+	//       POST("https://example.com/api")
+	WithRetry(maxNoOfRetries uint, statusCodes []int) HTTPRequest
+
+	// WithRetryAndBackoff configures the request to automatically retry on the specified HTTP status
+	// codes with a fixed delay between each attempt.
+	//
+	// Parameters:
+	//   - maxNoOfRetries: Maximum number of retry attempts.
+	//   - statusCodes: HTTP status codes that should trigger a retry.
+	//   - backoff: Fixed duration to wait between each retry attempt.
+	//
+	// Example:
+	//   err := NewRequest().
+	//       WithJson(payload).
+	//       WithRetryAndBackoff(3, []int{500, 502, 503}, 2*time.Second).
+	//       POST("https://example.com/api")
+	WithRetryAndBackoff(maxNoOfRetries uint, statusCodes []int, backoff time.Duration) HTTPRequest
+
+	// WithRetryAndExponentialBackoff configures the request to automatically retry on the specified
+	// HTTP status codes using exponential backoff with jitter.
+	// The wait time between retries grows as: initialBackoff * 2^attempt + random jitter (up to initialBackoff).
+	//
+	// Parameters:
+	//   - maxNoOfRetries: Maximum number of retry attempts.
+	//   - statusCodes: HTTP status codes that should trigger a retry.
+	//   - initialBackoff: Base duration for the first retry; subsequent retries double this value.
+	//
+	// Example:
+	//   err := NewRequest().
+	//       WithJson(payload).
+	//       WithRetryAndExponentialBackoff(5, []int{500, 502, 503}, 500*time.Millisecond).
+	//       POST("https://example.com/api")
+	WithRetryAndExponentialBackoff(maxNoOfRetries uint, statusCodes []int, initialBackoff time.Duration) HTTPRequest
 
 	// AddCookies creates a new HTTPRequest with additional cookies.
 	// The cookies parameter represents the cookie(s) to be added to the request.
@@ -346,26 +405,41 @@ type HTTPRequest interface {
 }
 
 
+// BackoffStrategy defines the algorithm used to compute the delay between retry attempts.
+type BackoffStrategy int
+
+const (
+	// BackoffNone applies no delay between retries.
+	BackoffNone BackoffStrategy = iota
+	// BackoffFixed applies a constant delay between retries.
+	BackoffFixed
+	// BackoffExponential applies an exponentially growing delay with jitter between retries.
+	BackoffExponential
+)
+
 type httpRequest struct {
-	resStatus   *int
-	resModel    interface{}
-	resCookies  *[]*http.Cookie
-	reqModel    interface{}
-	reqHeaders  map[string]string
-	reqCookies  []*http.Cookie
-	httpClient  client.HttpClient
-	context     context.Context
-	reqBytes    []byte
-	err         error
-	queryParams map[string]string
-	resHeaders  *map[string][]string
-	retries     restRetries
+	resStatus         *int
+	resModel          interface{}
+	resCookies        *[]*http.Cookie
+	reqModel          interface{}
+	reqHeaders        map[string]string
+	reqCookies        []*http.Cookie
+	httpClient        client.HttpClient
+	context           context.Context
+	reqBytes          []byte
+	err               error
+	queryParams       map[string]string
+	resHeaders        *map[string][]string
+	retries           restRetries
+	customReqModifier func(*http.Request) error
 }
 
 type restRetries struct {
-	maxRetries   uint
-	statusCodes  []int
-	retryCounter uint
+	maxRetries      uint
+	statusCodes     []int
+	retryCounter    uint
+	backoffStrategy BackoffStrategy
+	backoffDuration time.Duration
 }
 
 func (req httpRequest) GetResponseHeadersAs(respHeaders *map[string][]string) HTTPRequest {
@@ -402,17 +476,14 @@ func (req httpRequest) WithFromURLEncoded(formData map[string]interface{}) HTTPR
 	for key, value := range formData {
 		switch value.(type) {
 		case string:
-			err := bodyWriter.WriteField(key, value.(string))
-			if err != nil {
-				fmt.Printf("Error: %+v,", err)
+			if err := bodyWriter.WriteField(key, value.(string)); err != nil {
 				req.err = err
 			}
 		default:
 			req.err = errors.New("invalid request type: only multipart string is supported ")
 		}
 	}
-	err := bodyWriter.Close()
-	if err != nil {
+	if err := bodyWriter.Close(); err != nil {
 		req.err = err
 	}
 	req.reqHeaders["Content-Type"] = bodyWriter.FormDataContentType()
@@ -437,6 +508,40 @@ func (req httpRequest) WithJWTAuth(token string) HTTPRequest {
 
 func (req httpRequest) WithOauth(token string) HTTPRequest {
 	req.reqHeaders["Authorization"] = "Bearer " + token
+	return req
+}
+
+func (req httpRequest) WithCustomRequestModifier(fn func(*http.Request) error) HTTPRequest {
+	req.customReqModifier = fn
+	return req
+}
+
+func (req httpRequest) WithRetry(maxNoOfRetries uint, statusCodes []int) HTTPRequest {
+	req.retries = restRetries{
+		maxRetries:      maxNoOfRetries,
+		statusCodes:     statusCodes,
+		backoffStrategy: BackoffNone,
+	}
+	return req
+}
+
+func (req httpRequest) WithRetryAndBackoff(maxNoOfRetries uint, statusCodes []int, backoff time.Duration) HTTPRequest {
+	req.retries = restRetries{
+		maxRetries:      maxNoOfRetries,
+		statusCodes:     statusCodes,
+		backoffStrategy: BackoffFixed,
+		backoffDuration: backoff,
+	}
+	return req
+}
+
+func (req httpRequest) WithRetryAndExponentialBackoff(maxNoOfRetries uint, statusCodes []int, initialBackoff time.Duration) HTTPRequest {
+	req.retries = restRetries{
+		maxRetries:      maxNoOfRetries,
+		statusCodes:     statusCodes,
+		backoffStrategy: BackoffExponential,
+		backoffDuration: initialBackoff,
+	}
 	return req
 }
 
@@ -525,30 +630,43 @@ func (req httpRequest) executeRequest(method, url string) error {
 	if req.err != nil {
 		return req.err
 	}
-	httpRequest, reqErr := http.NewRequest(method, url, bytes.NewBuffer(req.reqBytes))
+	httpReq, reqErr := http.NewRequest(method, url, bytes.NewBuffer(req.reqBytes))
 	if reqErr != nil {
-		return req.err
+		return reqErr
 	}
 	for key, value := range req.reqHeaders {
-		httpRequest.Header.Add(key, value)
+		httpReq.Header.Add(key, value)
 	}
 
 	if req.context != nil {
-		httpRequest = httpRequest.WithContext(req.context)
+		httpReq = httpReq.WithContext(req.context)
 	}
-	query := httpRequest.URL.Query()
+	query := httpReq.URL.Query()
 	for paramKey, paramValue := range req.queryParams {
 		query.Add(paramKey, paramValue)
 	}
-	httpRequest.URL.RawQuery = query.Encode()
+	httpReq.URL.RawQuery = query.Encode()
 
 	for _, cookie := range req.reqCookies {
-		httpRequest.AddCookie(cookie)
+		httpReq.AddCookie(cookie)
 	}
-	response, httpErr := req.httpClient.Do(httpRequest)
+
+	if req.customReqModifier != nil {
+		if modErr := req.customReqModifier(httpReq); modErr != nil {
+			return modErr
+		}
+	}
+
+	response, httpErr := req.httpClient.Do(httpReq)
 	if httpErr != nil {
 		return httpErr
 	}
+	defer func() {
+		if response != nil && response.Body != nil {
+			_ = response.Body.Close()
+		}
+	}()
+
 	if response != nil && req.resStatus != nil {
 		*req.resStatus = response.StatusCode
 	}
@@ -556,34 +674,59 @@ func (req httpRequest) executeRequest(method, url string) error {
 		*req.resHeaders = response.Header
 	}
 
+	// Determine whether this response should trigger a retry.
+	shouldRetry := req.retries.maxRetries > 0 &&
+		len(req.retries.statusCodes) > 0 &&
+		req.retries.retryCounter < req.retries.maxRetries &&
+		req.matchesRetryStatus(response.StatusCode)
+
+	if shouldRetry {
+		// Do not populate the caller's output pointers with data from an intermediate
+		// failing attempt — wait until the final response (success or last retry).
+		req.retries.retryCounter++
+		req.applyBackoff()
+		return req.executeRequest(method, url)
+	}
+
+	// Final response: bind body, cookies, etc.
 	if req.resModel != nil {
-		err := req.processResponseModel(response)
-		if err != nil {
+		if err := req.processResponseModel(response); err != nil {
 			return err
 		}
 	}
 
 	if req.resCookies != nil {
 		*req.resCookies = response.Cookies()
-		fmt.Println(response.Cookies())
-	}
-	closeErr := response.Body.Close()
-	if closeErr != nil {
-		return closeErr
-	}
-
-	if req.retries.maxRetries > 0 && len(req.retries.statusCodes) > 0 {
-		if req.retries.retryCounter < req.retries.maxRetries {
-			for _, retryStatus := range req.retries.statusCodes {
-				if retryStatus == response.StatusCode {
-					req.retries.retryCounter = req.retries.retryCounter + 1
-					return req.executeRequest(method, url)
-				}
-			}
-		}
 	}
 
 	return nil
+}
+
+// matchesRetryStatus returns true if the given status code is in the retry status codes list.
+func (req httpRequest) matchesRetryStatus(statusCode int) bool {
+	for _, retryStatus := range req.retries.statusCodes {
+		if retryStatus == statusCode {
+			return true
+		}
+	}
+	return false
+}
+
+// applyBackoff pauses execution according to the configured backoff strategy.
+func (req httpRequest) applyBackoff() {
+	switch req.retries.backoffStrategy {
+	case BackoffFixed:
+		time.Sleep(req.retries.backoffDuration)
+	case BackoffExponential:
+		// delay = initialBackoff * 2^attempt + jitter in [0, initialBackoff)
+		attempt := int(req.retries.retryCounter)
+		multiplier := math.Pow(2, float64(attempt-1))
+		delay := time.Duration(float64(req.retries.backoffDuration) * multiplier)
+		jitter := time.Duration(rand.Int63n(int64(req.retries.backoffDuration) + 1))
+		time.Sleep(delay + jitter)
+	default:
+		// BackoffNone — no sleep
+	}
 }
 
 func (req httpRequest) basicAuth(username, password string) string {
@@ -602,12 +745,11 @@ func (req httpRequest) processResponseModel(resp *http.Response) error {
 	} else if byteArrPtr, isByteArrPtr := req.resModel.(*[]byte); isByteArrPtr {
 		*byteArrPtr = body
 	} else {
-		var unmarshalerErr error
 		contentType := resp.Header.Get("Content-Type")
+		var unmarshalerErr error
 		if strings.Contains(contentType, "application/xml") {
 			unmarshalerErr = xml.Unmarshal(body, req.resModel)
-		}
-		if strings.Contains(contentType, "application/json") {
+		} else if strings.Contains(contentType, "application/json") {
 			unmarshalerErr = json.Unmarshal(body, req.resModel)
 		}
 		if unmarshalerErr != nil {
@@ -646,6 +788,33 @@ type RestClient interface {
 	//	retries are desired. If the request fails with any of the specified status codes,
 	//	it will be retried up to maxNoOfRetries times.
 	NewRequestWithRetries(maxNoOfRetries uint, statusCodes []int) HTTPRequest
+
+	// NewRequestWithRetryAndBackoff creates a new HTTPRequest with retry functionality and
+	// a fixed backoff delay between retry attempts.
+	//
+	// Parameters:
+	//   - maxNoOfRetries: The maximum number of retries allowed for the request if it fails.
+	//   - statusCodes: A slice of integers representing the HTTP status codes that should trigger a retry.
+	//   - backoff: Fixed duration to wait between each retry attempt.
+	//
+	// Example:
+	//
+	//	req := NewRequestWithRetryAndBackoff(3, []int{500, 502}, 2*time.Second)
+	NewRequestWithRetryAndBackoff(maxNoOfRetries uint, statusCodes []int, backoff time.Duration) HTTPRequest
+
+	// NewRequestWithRetryAndExponentialBackoff creates a new HTTPRequest with retry functionality
+	// and exponential backoff with jitter between retry attempts.
+	// The delay grows as: initialBackoff * 2^attempt + random jitter in [0, initialBackoff).
+	//
+	// Parameters:
+	//   - maxNoOfRetries: The maximum number of retries allowed for the request if it fails.
+	//   - statusCodes: A slice of integers representing the HTTP status codes that should trigger a retry.
+	//   - initialBackoff: Base duration for the exponential backoff calculation.
+	//
+	// Example:
+	//
+	//	req := NewRequestWithRetryAndExponentialBackoff(5, []int{500, 502, 503}, 500*time.Millisecond)
+	NewRequestWithRetryAndExponentialBackoff(maxNoOfRetries uint, statusCodes []int, initialBackoff time.Duration) HTTPRequest
 }
 
 type restClient struct {
@@ -666,8 +835,37 @@ func (builder restClient) NewRequestWithRetries(maxNoOfRetries uint, statusCodes
 		reqCookies: []*http.Cookie{},
 		httpClient: builder.httpClient,
 		retries: restRetries{
-			maxRetries:  maxNoOfRetries,
-			statusCodes: statusCodes,
+			maxRetries:      maxNoOfRetries,
+			statusCodes:     statusCodes,
+			backoffStrategy: BackoffNone,
+		},
+	}
+}
+
+func (builder restClient) NewRequestWithRetryAndBackoff(maxNoOfRetries uint, statusCodes []int, backoff time.Duration) HTTPRequest {
+	return httpRequest{
+		reqHeaders: map[string]string{},
+		reqCookies: []*http.Cookie{},
+		httpClient: builder.httpClient,
+		retries: restRetries{
+			maxRetries:      maxNoOfRetries,
+			statusCodes:     statusCodes,
+			backoffStrategy: BackoffFixed,
+			backoffDuration: backoff,
+		},
+	}
+}
+
+func (builder restClient) NewRequestWithRetryAndExponentialBackoff(maxNoOfRetries uint, statusCodes []int, initialBackoff time.Duration) HTTPRequest {
+	return httpRequest{
+		reqHeaders: map[string]string{},
+		reqCookies: []*http.Cookie{},
+		httpClient: builder.httpClient,
+		retries: restRetries{
+			maxRetries:      maxNoOfRetries,
+			statusCodes:     statusCodes,
+			backoffStrategy: BackoffExponential,
+			backoffDuration: initialBackoff,
 		},
 	}
 }
